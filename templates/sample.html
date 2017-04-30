@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<style>
+
+    .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+
+    #menu {
+        background: #fff;
+        position: absolute;
+        z-index: 1;
+        top: 10px;
+        right: 10px;
+        border-radius: 3px;
+        width: 120px;
+        border: 1px solid rgba(0,0,0,0.4);
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    #menu a {
+        font-size: 13px;
+        color: #404040;
+        display: block;
+        margin: 0;
+        padding: 0;
+        padding: 10px;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(0,0,0,0.25);
+        text-align: center;
+    }
+
+    #menu a:last-child {
+        border: none;
+    }
+
+    #menu a:hover {
+        background-color: #f8f8f8;
+        color: #404040;
+    }
+
+    #menu a.active {
+        background-color: #3887be;
+        color: #ffffff;
+    }
+
+    #menu a.active:hover {
+        background: #3074a4;
+    }
+
+    .map-button {
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        position: absolute;
+        width: 25%;
+        top: 75%;
+        left: 40%;
+        padding: 10px;
+    }
+
+    .map-overlay {
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        position: absolute;
+        width: 25%;
+        top: 0;
+        left: 0;
+        padding: 10px;
+    }
+
+    .map-overlay .map-overlay-inner {
+        background-color: #fff;
+        box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+        border-radius: 3px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .map-overlay h2 {
+        line-height: 24px;
+        display: block;
+        margin: 0 0 10px;
+    }
+
+    .map-overlay .legend .bar {
+        height: 10px;
+        width: 100%;
+        background: linear-gradient(to right, #FCA107, #7F3121);
+    }
+
+    .map-overlay input {
+        background-color: transparent;
+        display: inline-block;
+        width: 100%;
+        position: relative;
+        margin: 0;
+        cursor: ew-resize;
+    }
+
+    .button {
+        background-color: #4CAF50; /* Green */
+        border: none;
+        color: white;
+        padding: 16px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        -webkit-transition-duration: 0.4s; /* Safari */
+        transition-duration: 0.4s;
+        cursor: pointer;
+        width: 200px;
+    }
+
+    .button1 {
+        background-color: white; 
+        color: black; 
+        border: 2px solid #4CAF50;
+    }
+
+    .button1:hover {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .button2 {
+        background-color: white; 
+        color: black; 
+        border: 2px solid #008CBA;
+    }
+
+    .button2:hover {
+        background-color: #008CBA;
+        color: white;
+    }
+
+</style>
+
+<nav id="menu"></nav>
+<div id="map"></div>
+
+<div class='map-overlay top'>
+    <div class='map-overlay-inner'>
+        <h2>Precipitation in the Past One Week</h2>
+        <label id='day_id'></label>
+        <input id='slider' type='range' min='0' max='4' step='1' value='0' />
+    </div>
+</div>
+<div class='map-button'>
+    <div style="float: left" >
+        <a href="http://192.168.43.34:3000" class="button button1">Submit Your Observation</a>
+    </div>
+    <div style="float: left" >
+        <a href="http://192.168.43.191:3006" class="button button2">Or Make a Prediction!</a>
+    </div>
+
+</div>
+
+<script src='//d3js.org/d3.v3.min.js' charset='utf-8'></script>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1Ijoia2ZjaGVuIiwiYSI6ImNqMjJzN3M3ODAwaTYycXFpd3F3YXdtaWUifQ.6ecQVIAJBn5znI907QO2Xg';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
+    zoom: 5,
+    center: [121, 24]
+});
+
+var days_id = [
+    0,1,2,3,4
+];
+
+function filterBy(day_id) {
+
+    var filters = ['==', 'day_id', day_id];
+    map.setFilter('rain', filters);
+}
+
+map.on('load', function () {
+
+    map.addSource('rain', {
+        type: 'geojson',
+        data: {{rain | safe}}
+    });
+    map.addLayer({
+        "id": "rain",
+        "type": "fill",
+        "source": "rain",
+        //"source-layer": "predict",
+        "paint": {
+            'fill-opacity': 0.8,
+            'fill-color': {
+                property: 'precip',
+                type: 'categorical',
+                stops: [
+                    [1, '#c0c0c0'],
+                    [2, '#018414'],
+                    [3, '#018c4e'],
+                    [5, '#02b331'],
+                    [10, '#57d005'],
+                    [20, '#b5e700'],
+                    [40, '#f9f602'],
+                    [70, '#fbc500'],
+                    [120, '#FF9400'],
+                    [200, '#FE0000'],
+                    [350, '#C80000'],
+                    [600, '#8F0000']]
+            }
+        }
+        //"filter": ["==", "$type", "Polygon"]
+    });
+
+    map.addSource('taiwan', {
+        type: 'geojson',
+        data: {
+            "type": "FeatureCollection",
+            "features": [
+            {% for i in taiwan %}
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [{{i['lon'] | safe}}, {{i['lat'] | safe}}]
+                },
+                "properties": {
+                        "description": "<center><h3>{{i['name']}}:{{i['time']}}</strong></h3></center><hr><ul><li>Triggered By: {{i['triger']}}</li><li>Injuries: Unkown</li><li>Landslide Size: Unkown</li></ul><center><img src=\"http://www.weatherwizkids.com/wp-content/uploads/2015/04/landslide5.jpg\" align=\"middle\" height=\"300\" width=\"300\"></center>"
+                },
+            },
+            {% endfor %}]
+        }
+    });
+    map.addLayer({
+        'id': 'taiwan',
+        'type': 'circle',
+        'source': 'taiwan',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#1c7539'
+        }
+        //'source-layer': 'museum-cusco'
+    });
+
+
+    map.addSource('history', {
+        type: 'geojson',
+        data: {{history | safe}}
+    });
+    map.addLayer({
+        'id': 'history',
+        'type': 'circle',
+        'source': 'history',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#ff01d9'
+        }
+        //'source-layer': 'museum-cusco'
+    });
+
+    map.addSource('predict', {
+        type: 'geojson',
+        data: {{predict | safe}}
+    });
+    map.addLayer({
+        "id": "predict",
+        "type": "fill",
+        "source": "predict",
+        //"source-layer": "predict",
+        "paint": {
+            'fill-opacity': 0.8,
+            'fill-color': {
+                property: 'nowcast',
+                type: 'categorical',
+                stops: [
+                    [1, '#fbb03b'],
+                    [2, '#b72517']]
+            }
+        }
+        //"filter": ["==", "$type", "Polygon"]
+    });
+
+    // When a click event occurs on a feature in the places layer, open a popup at the
+    // location of the feature, with description HTML from its properties.
+    map.on('click', 'history', function (e) {
+        new mapboxgl.Popup()
+            .setLngLat(e.features[0].geometry.coordinates)
+            .setHTML(e.features[0].properties.description)
+            .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'history', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'history', function () {
+        map.getCanvas().style.cursor = '';
+    });
+
+    map.on('click', 'taiwan', function (e) {
+        new mapboxgl.Popup()
+            .setLngLat(e.features[0].geometry.coordinates)
+            .setHTML(e.features[0].properties.description)
+            .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'taiwan', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'taiwan', function () {
+        map.getCanvas().style.cursor = '';
+    });
+
+    filterBy(0);
+
+    document.getElementById('slider').addEventListener('input', function(e) {
+            var day_id = parseInt(e.target.value, 10);
+            filterBy(day_id);
+    });
+});
+
+
+
+var toggleableLayerIds = [ 'predict', 'history', 'taiwan', 'rain' ];
+
+for (var i = 0; i < toggleableLayerIds.length; i++) {
+    var id = toggleableLayerIds[i];
+
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'active';
+    link.textContent = id;
+
+    link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+            map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+            this.className = '';
+        } else {
+            this.className = 'active';
+            map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+    };
+
+    var layers = document.getElementById('menu');
+    layers.appendChild(link);
+}
+
+</script>
+
+</body>
+</html>

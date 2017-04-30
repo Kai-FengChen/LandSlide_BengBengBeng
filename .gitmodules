@@ -1,0 +1,6 @@
+[submodule "landslide_bid"]
+	path = landslide_bid
+	url = https://github.com/maoredman/landslide_bid.git
+[submodule "static/landslide_victory"]
+	path = static/landslide_victory
+	url = https://github.com/maoredman/landslide_victory.git
