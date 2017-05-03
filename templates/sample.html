@@ -2,10 +2,10 @@
 <html>
 <head>
     <meta charset='utf-8' />
-    <title></title>
+    <title>Home - Landslide Victory</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='/static/JS/mapbox-gl.js'></script>
+    <link href='/static/CSS/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -161,15 +161,15 @@
 </div>
 <div class='map-button'>
     <div style="float: left" >
-        <a href="http://192.168.43.34:3000" class="button button1">Submit Your Observation</a>
+        <a href="http://192.168.1.206:3000" class="button button1">Submit Your Observation</a>
     </div>
     <div style="float: left" >
-        <a href="http://192.168.43.191:3006" class="button button2">Or Make a Prediction!</a>
+        <a href="http://192.168.1.129:3006" class="button button2">Or Make a Prediction!</a>
     </div>
 
 </div>
 
-<script src='//d3js.org/d3.v3.min.js' charset='utf-8'></script>
+<script src='/static/JS/d3.v3.min.js' charset='utf-8'></script>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2ZjaGVuIiwiYSI6ImNqMjJzN3M3ODAwaTYycXFpd3F3YXdtaWUifQ.6ecQVIAJBn5znI907QO2Xg';
 var map = new mapboxgl.Map({
@@ -275,6 +275,24 @@ map.on('load', function () {
         //'source-layer': 'museum-cusco'
     });
 
+    map.addSource('User-Upload', {
+        type: 'geojson',
+        data: {{user_upload | safe}}
+    });
+    map.addLayer({
+        'id': 'User-Upload',
+        'type': 'circle',
+        'source': 'User-Upload',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#f7e818'
+        }
+        //'source-layer': 'museum-cusco'
+    });
+
     map.addSource('predict', {
         type: 'geojson',
         data: {{predict | safe}}
@@ -316,6 +334,23 @@ map.on('load', function () {
         map.getCanvas().style.cursor = '';
     });
 
+    map.on('click', 'User-Upload', function (e) {
+        new mapboxgl.Popup()
+            .setLngLat(e.features[0].geometry.coordinates)
+            .setHTML(e.features[0].properties.description)
+            .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'User-Upload', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'User-Upload', function () {
+        map.getCanvas().style.cursor = '';
+    });
+
     map.on('click', 'taiwan', function (e) {
         new mapboxgl.Popup()
             .setLngLat(e.features[0].geometry.coordinates)
@@ -343,7 +378,7 @@ map.on('load', function () {
 
 
 
-var toggleableLayerIds = [ 'predict', 'history', 'taiwan', 'rain' ];
+var toggleableLayerIds = [ 'predict', 'history', 'User-Upload', 'taiwan', 'rain' ];
 
 for (var i = 0; i < toggleableLayerIds.length; i++) {
     var id = toggleableLayerIds[i];

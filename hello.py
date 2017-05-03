@@ -10,17 +10,24 @@ app = Flask(__name__)
 @app.route("/")
 def main():
     SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
+    
     json_url = os.path.join(SITE_ROOT, "static/data", "today.json")
     predict = json.load(open(json_url))
-    json_url = os.path.join(SITE_ROOT, "static/data", "point.json")
+
+    json_url = os.path.join(SITE_ROOT, "static/data", "point.json")        
     history = json.load(open(json_url))
     history = {"features":history,"type":'FeatureCollection'}
+    
+    user_upload = requests.get('http://nasa.rails.nctu.me/catalogs/index.json').json()
+    user_upload = {"features":user_upload,"type":'FeatureCollection'}
+    
     json_url = os.path.join(SITE_ROOT, "static/data", "taiwan.json")
     taiwan = json.load(open(json_url))
+    
     json_url = os.path.join(SITE_ROOT, "static/data", "rain.json")
     rain = json.load(open(json_url))
 
-    return render_template('sample.html', history=history, predict=predict, taiwan=taiwan, rain=rain)
+    return render_template('sample.html', history=history, predict=predict, taiwan=taiwan, rain=rain, user_upload=user_upload)
 
 @app.route("/update")
 def update():
