@@ -4,3 +4,6 @@
 [submodule "static/landslide_victory"]
 	path = static/landslide_victory
 	url = https://github.com/maoredman/landslide_victory.git
+[submodule "landslide_backend"]
+	path = landslide_backend
+	url = git@github.com:deror1869107/landslide_backend.git
