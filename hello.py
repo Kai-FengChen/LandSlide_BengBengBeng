@@ -43,9 +43,8 @@ def update():
     
     geojson = os.popen("./node_modules/topojson-client/bin/topo2geo -l < top.json").read()[:-1]
     os.popen("./node_modules/topojson-client/bin/topo2geo %s.json < top.json" %geojson)
-    os.popen("mv %s.json static/data/today.json" %geojson)
 
-    with open('static/data/today.json') as f:
+    with open('%s.json' %geojson) as f:
         data = json.load(f)
 
     for i in range(len(data['features'])):
