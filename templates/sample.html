@@ -189,6 +189,10 @@ function filterBy(day_id) {
     map.setFilter('rain', filters);
 }
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 map.on('load', function () {
 
     map.addSource('rain', {
@@ -275,14 +279,14 @@ map.on('load', function () {
         //'source-layer': 'museum-cusco'
     });
 
-    map.addSource('User-Upload', {
+    map.addSource('upload', {
         type: 'geojson',
         data: {{user_upload | safe}}
     });
     map.addLayer({
-        'id': 'User-Upload',
+        'id': 'upload',
         'type': 'circle',
-        'source': 'User-Upload',
+        'source': 'upload',
         'layout': {
             'visibility': 'visible'
         },
@@ -334,7 +338,7 @@ map.on('load', function () {
         map.getCanvas().style.cursor = '';
     });
 
-    map.on('click', 'User-Upload', function (e) {
+    map.on('click', 'upload', function (e) {
         new mapboxgl.Popup()
             .setLngLat(e.features[0].geometry.coordinates)
             .setHTML(e.features[0].properties.description)
@@ -342,12 +346,12 @@ map.on('load', function () {
     });
 
     // Change the cursor to a pointer when the mouse is over the places layer.
-    map.on('mouseenter', 'User-Upload', function () {
+    map.on('mouseenter', 'upload', function () {
         map.getCanvas().style.cursor = 'pointer';
     });
 
     // Change it back to a pointer when it leaves.
-    map.on('mouseleave', 'User-Upload', function () {
+    map.on('mouseleave', 'upload', function () {
         map.getCanvas().style.cursor = '';
     });
 
@@ -378,7 +382,7 @@ map.on('load', function () {
 
 
 
-var toggleableLayerIds = [ 'predict', 'history', 'User-Upload', 'taiwan', 'rain' ];
+var toggleableLayerIds = [ 'predict', 'history', 'upload', 'taiwan', 'rain' ];
 
 for (var i = 0; i < toggleableLayerIds.length; i++) {
     var id = toggleableLayerIds[i];
@@ -386,16 +390,34 @@ for (var i = 0; i < toggleableLayerIds.length; i++) {
     var link = document.createElement('a');
     link.href = '#';
     link.className = 'active';
-    link.textContent = id;
 
-    var img = document.createElement("img");
-    img.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/NASA_logo.svg/2000px-NASA_logo.svg.png';
-    img.style.width = '20%';
-    img.style.height = '20%';
-    link.appendChild(img);
+    if (id == 'predict' || id == 'history' || id == 'rain') {
+        link.textContent = capitalizeFirstLetter(id);
+        var img = document.createElement("img");
+        img.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/NASA_logo.svg/2000px-NASA_logo.svg.png';
+        img.style.width = '20%';
+        img.style.height = '20%';
+        link.appendChild(img);
+    }
+    if (id == 'taiwan') {
+        link.textContent = capitalizeFirstLetter(id);
+        var img = document.createElement("img");
+        img.src = 'static/taiwan-landslide-logo.png';
+        img.style.width = '20%';
+        img.style.height = '20%';
+        link.appendChild(img);
+    }
+    if (id == 'upload') {
+        link.textContent = capitalizeFirstLetter(id);
+        var img = document.createElement("img");
+        img.src = 'static/upload_icon.png';
+        img.style.width = '20%';
+        img.style.height = '20%';
+        link.appendChild(img);
+    }
 
     link.onclick = function (e) {
-        var clickedLayer = this.textContent;
+        var clickedLayer = this.textContent.toLowerCase();
         e.preventDefault();
         e.stopPropagation();
 
