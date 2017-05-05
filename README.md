@@ -1,4 +1,5 @@
-# LandSlide, BengBengBeng!
+# LandSlide Vicory
+(a.k.a LandSlide BengBengBeng)
 This is a three-in-one platform designed for the `NASA 2017 Space App Challenge, Taipei`. For video and text introduction of our project, please visit the 2017 NASA Space App Challenge [Page](https://2017.spaceappschallenge.org/challenges/warning-danger-ahead/when-landslides-strike/teams/space-bar/project).
 
 # For Developers
@@ -42,7 +43,6 @@ $ npm install
 $ cd ../../landslide_bid
 $ npm install
 $ cd ../landslide_backend
-$ 
 ```
 
 ### Start The Service 
@@ -54,17 +54,19 @@ $ python hello.py
 Upload Page:
 ```bash
 $ cd static/landslide_victory
-$ npm start
+$ npm run start
 ```
 Wager Page:
 ```bash
 $ cd landslide_bid
-$ npm start
+$ npm run client
 ```
 Backend and Database:
 ```bash
 $ cd landslide_backend
-$ 
+$ bundle
+$ rails db:migrate
+$ rails s
 ```
 
 ## Project Structure
