@@ -29,58 +29,74 @@ def main():
 
     return render_template('sample.html', history=history, predict=predict, taiwan=taiwan, rain=rain, user_upload=user_upload)
 
-@app.route("/update")
+@app.route("/update", methods=['GET', 'POST'])
 def update():
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    precip_req = "https://pmmpublisher.pps.eosdis.nasa.gov/opensearch?q=global_landslide_nowcast_30mn&limit=1&startTime=%s&endTime=%s" %(today,today)
-    p = requests.get(precip_req)
-    r = requests.get(p.json()['items'][0]['action'][0]['using'][0]['url'])
-    soup = BeautifulSoup(r.content, 'html.parser')
-    topjson = requests.get(soup.find_all('a')[1].get('href')).json()
-    
-    with open('top.json', 'w') as f:
-        json.dump(topjson, f)
-    
-    geojson = os.popen("./node_modules/topojson-client/bin/topo2geo -l < top.json").read()[:-1]
-    os.popen("./node_modules/topojson-client/bin/topo2geo %s.json < top.json" %geojson)
+    if request.method == 'POST':
+        post_json = request.get_json()
+        try:
+            if post_json['token'] == "our_secret":
+                today = datetime.date.today().strftime("%Y-%m-%d")
+                precip_req = "https://pmmpublisher.pps.eosdis.nasa.gov/opensearch?q=global_landslide_nowcast_30mn&limit=1&startTime=%s&endTime=%s" %(today,today)
+                p = requests.get(precip_req)
+                r = requests.get(p.json()['items'][0]['action'][0]['using'][0]['url'])
+                soup = BeautifulSoup(r.content, 'html.parser')
+                topjson = requests.get(soup.find_all('a')[1].get('href')).json()
+                
+                with open('top.json', 'w') as f:
+                    json.dump(topjson, f)
+                
+                geojson = os.popen("./node_modules/topojson-client/bin/topo2geo -l < top.json").read()[:-1]
+                os.popen("./node_modules/topojson-client/bin/topo2geo %s.json < top.json" %geojson)
+                time.sleep(2)
+                with open('%s.json' %geojson) as f:
+                    data = json.load(f)
 
-    with open('%s.json' %geojson) as f:
-        data = json.load(f)
+                for i in range(len(data['features'])):
+                    data['features'][i]['nowcast'] = data['features'][i]['properties']['nowcast']
 
-    for i in range(len(data['features'])):
-        data['features'][i]['nowcast'] = data['features'][i]['properties']['nowcast']
+                with open('static/data/today.json', 'w') as f:
+                    json.dump(data, f)
+        except:
+            pass
+        return redirect('/')
+    if request.method == 'GET':
+        return redirect('/')
 
-    with open('static/data/today.json', 'w') as f:
-        json.dump(data, f)
-    
-    return redirect('/')
-
-@app.route("/rain")
+@app.route("/rain", methods=['GET', 'POST'])
 def rain():
-    feature = []
-    for i in range(5):
-        today = datetime.date.fromordinal(datetime.date.today().toordinal()-i-2).strftime("%Y-%m-%d")
-        precip_req = "https://pmmpublisher.pps.eosdis.nasa.gov/opensearch?q=precip_1d&limit=1&startTime=%s&endTime=%s" %(today,today)
-        p = requests.get(precip_req)
-        topjson = requests.get(p.json()['items'][0]['action'][1]['using'][0]['url']).json()
-        
-        with open('top.json', 'w') as f:
-            json.dump(topjson, f)
-        
-        geojson = os.popen("./node_modules/topojson-client/bin/topo2geo -l < top.json").read()[:-1]
-        os.popen("./node_modules/topojson-client/bin/topo2geo %s.json < top.json" %geojson)
-        time.sleep(2)
-        print(i)
-        with open('%s.json' %geojson) as f:
-            data = json.load(f)
-        for j in range(len(data['features'])):
-            data['features'][j]['properties']['day_id'] = i
-        feature = feature+data['features']
-    #os.popen("mv %s.json static/data/today.json" %geojson)
-    with open('static/data/rain.json', 'w') as f:
-        json.dump({"features":feature,"type":'FeatureCollection'}, f)
-    
-    return redirect('/')
+    if request.method == 'POST':
+        post_json = request.get_json()
+        try:
+            if post_json['token'] == "our_secret":            
+                feature=[]
+                for i in range(5):
+                    today = datetime.date.fromordinal(datetime.date.today().toordinal()-i-2).strftime("%Y-%m-%d")
+                    precip_req = "https://pmmpublisher.pps.eosdis.nasa.gov/opensearch?q=precip_1d&limit=1&startTime=%s&endTime=%s" %(today\
+                ,today)
+                    precip_req = "https://pmmpublisher.pps.eosdis.nasa.gov/opensearch?q=precip_30mn_1d&lat=24&lon=121&limit=1&startTime=%s&endTime=%s" %(today,today)
+                    p = requests.get(precip_req)
+                    topjson = requests.get(p.json()['items'][0]['action'][1]['using'][0]['url']).json()
+
+                    with open('top.json', 'w') as f:
+                        json.dump(topjson, f)
+
+                    geojson = os.popen("./node_modules/topojson-client/bin/topo2geo -l < top.json").read()[:-1]
+                    os.popen("./node_modules/topojson-client/bin/topo2geo %s.json < top.json" %geojson)
+                    print(i)
+                    time.sleep(2)
+                    with open('%s.json' %geojson) as f:
+                        data = json.load(f)
+                    for j in range(len(data['features'])):
+                        data['features'][j]['properties']['day_id'] = i
+                    feature = feature+data['features']
+                #os.popen("mv %s.json static/data/today.json" %geojson)
+                with open('static/data/rain.json', 'w') as f:
+                    json.dump({"features":feature,"type":'FeatureCollection'}, f)
+        except:
+            pass
+        return redirect('/')
+    if request.method == 'GET':
+        return redirect('/')
 
 @app.route("/update_points")
 def update_points():
