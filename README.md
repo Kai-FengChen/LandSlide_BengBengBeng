@@ -64,7 +64,9 @@ $ npm start
 Backend and Database:
 ```bash
 $ cd landslide_backend
-$ 
+$ bundle
+$ rails db:migrate
+$ rails s
 ```
 
 ## Project Structure
