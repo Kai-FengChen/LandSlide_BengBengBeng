@@ -1,5 +1,6 @@
-# LandSlide Vicory
-(a.k.a LandSlide BengBengBeng)
+# LandSlide Victory
+(a.k.a LandSlide, BengBengBeng)
+
 This is a three-in-one platform designed for the `NASA 2017 Space App Challenge, Taipei`. For video and text introduction of our project, please visit the 2017 NASA Space App Challenge [Page](https://2017.spaceappschallenge.org/challenges/warning-danger-ahead/when-landslides-strike/teams/space-bar/project).
 
 # For Developers
