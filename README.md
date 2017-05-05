@@ -1,4 +1,5 @@
 # LandSlide, BengBengBeng!
+
 This is a three-in-one platform designed for the `NASA 2017 Space App Challenge, Taipei`. For video and text introduction of our project, please visit the 2017 NASA Space App Challenge [Page](https://2017.spaceappschallenge.org/challenges/warning-danger-ahead/when-landslides-strike/teams/space-bar/project).
 
 # For Developers
@@ -64,7 +65,9 @@ $ npm start
 Backend and Database:
 ```bash
 $ cd landslide_backend
-$ 
+$ bundle
+$ rails db:migrate
+$ rails s
 ```
 
 ## Project Structure
